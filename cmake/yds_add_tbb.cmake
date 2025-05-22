@@ -1,0 +1,38 @@
+#multithreading
+#oneTBB is a part of oneAPI. To add:
+## 1. Add libtbb-dev (apt install sudo apt-get install libtbb-dev)
+## 2. Add to CMakeLists.txt (find_package(TBB)  target_link_libraries(${TARGET} TBB::tbb))
+function(custom_add_tbb TARGET)
+    if(USE_TBB_IN_TARGET_PROJECT EQUAL 1)
+        find_package(TBB)
+        # if(NOT TBB)
+        if(NOT TBB_FOUND)
+            message(NOTICE "Tbb libraries not found, try get and build")
+            custom_download_build_add_tbb(${TARGET})
+        endif()
+
+        find_package(TBB REQUIRED)
+        #target_link_libraries(${TARGET} ${TBB_IMPORTED_TARGETS})
+        target_link_libraries(${TARGET} TBB::tbb)
+        message(NOTICE "Tbb libraries was linked to ${TARGET}")
+    endif()
+endfunction()
+
+function(custom_download_add_tbb TARGET)
+    tbb_get(TBB_ROOT tbb_root CONFIG_DIR TBB_DIR)
+    custom_add_tbb_helper(${TARGET})
+endfunction()
+
+function(custom_download_build_add_tbb TARGET)
+    tbb_get(TBB_ROOT tbb_root SOURCE_CODE)
+    message(NOTICE "Tbb get in root: ${tbb_root}")
+    tbb_build(TBB_ROOT ${tbb_root} CONFIG_DIR TBB_DIR)
+    message(NOTICE "Tbb build in root: ${tbb_root}; config dir: ${CONFIG_DIR}; tbb dir: ${TBB_DIR}")
+    custom_add_tbb_helper(${TARGET})
+endfunction()
+
+function(custom_add_tbb_helper TARGET)
+    find_package(TBB)
+    target_link_libraries(${TARGET} ${TBB_IMPORTED_TARGETS})
+    message(NOTICE "To ${TARGET} link tbb libraries: ${TBB_IMPORTED_TARGETS}")
+endfunction()
